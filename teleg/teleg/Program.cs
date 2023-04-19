@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Data.SQLite;
 
 namespace teleg
 {
@@ -11,6 +12,15 @@ namespace teleg
     {
         public static async Task Main(string[] args)
         {
+            // Создаем БД и таблицу при запуске программы
+            SQLiteConnection.CreateFile("mydatabase.db");
+            SQLiteConnection m_dbConnection = new SQLiteConnection("Data Source=mydatabase.db;Version=3;");
+            m_dbConnection.Open();
+            string sql_create_table = "CREATE TABLE IF NOT EXISTS table_name (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(50), money INT)";
+            SQLiteCommand create_table_cmd = new SQLiteCommand(sql_create_table, m_dbConnection);
+            create_table_cmd.ExecuteNonQuery();
+            m_dbConnection.Close();
+
             var client = new TelegramBotClient("6198418939:AAHy8cobgalR-A4pNLSfLNjBNHg6aBOwnv4");
             client.StartReceiving(Update, Error);
             await Task.Delay(-1);
@@ -36,25 +46,51 @@ namespace teleg
                     new KeyboardButton("Игра2"),
                     new KeyboardButton("Правила для игры1"),
                     new KeyboardButton("Правила для игры2")
+                },
+                new[]
+                {
+                    new KeyboardButton("Посмотреть мой баланс")
                 }
             });
+
             
             switch (message.Text)
             {
                 case "/start":
                 case "Вернуться в главное меню":
 
+                    // Добавляем пользователя в таблицу с начальным значением "money = 1000"
+                    SQLiteConnection m_dbConnection = new SQLiteConnection("Data Source=mydatabase.db;Version=3;");
+                    m_dbConnection.Open();
+                    string sql_insert_user = "INSERT INTO table_name (name, money) VALUES ('" + message.From.Username + "', 1000)";
+                    SQLiteCommand insert_user_cmd = new SQLiteCommand(sql_insert_user, m_dbConnection);
+                    insert_user_cmd.ExecuteNonQuery();
+                    m_dbConnection.Close();
+
                     await botClient.SendTextMessageAsync(message.Chat.Id, "Добрый день,хотите проиграть свою машину ?", replyMarkup: keyboard1);
                     break;
 
                 case "Правила для игры2":
 
-                    await botClient.SendTextMessageAsync(message.Chat.Id, "Слоты - это очень простая игра, где нужно только смотреть!\r\n\r\nЧто может вам выпасть:\r\n\r\n- \U0001F365\U0001F365\U0001F365 = (Ваши деньги)*2\r\n\r\n- \U0001F366\U0001F366\U0001F366  = (Ваши деньги)*3", replyMarkup: keyboard);
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "rule 1");
                     break;
                 case "Правила для игры1":
-                    await botClient.SendTextMessageAsync(message.Chat.Id, "Блэкджек - это карточная игра, в которой игроки играют против дилера, пытаясь набрать карты, сумма очков которых равна или близка к 21, но не больше.\r\n\r\nОсновные правила блэкджека:\r\n\r\n- Каждый игрок ставит ставку и получает по две карты, дилер получает одну карту.\r\n- Карты с номиналом от 2 до 10 имеют такую же ценность, туз может считаться как 1 или 11, а карты с лицами (король, дама, валет) стоят по 10 очков.\r\n- Игроки могут взять дополнительные карты, чтобы приблизиться к 21, но не более 21.\r\n- Если у игрока больше 21 очка, он проигрывает.\r\n- После того, как все игроки взяли дополнительные карты, дилер получает свои карты. Дилер обязан брать дополнительные карты до тех пор, пока его очки не достигнут 17 и более очков, после чего он останавливается.\r\n- Если у дилера больше 21 очка, то все оставшиеся игроки выигрывают.\r\n- Если у игрока и дилера равное количество очков, то ставки возвращаются игрокам.\r\n- Если у игрока больше очков, чем у дилера, и он не набрал больше 21, то он выигрывает, и его ставка удваивается.\r\n- Если у игрока набрался блэкджек (21 очко с двумя картами), то он выигрывает 1,5 раза свою ставку.", replyMarkup: keyboard);
-                    
+
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "rule 2");
                     break;
+                case "Посмотреть мой баланс":
+                    // Получаем баланс пользователя из БД
+                    SQLiteConnection m_dbConnection2 = new SQLiteConnection("Data Source=mydatabase.db;Version=3;");
+                    m_dbConnection2.Open();
+                    string sql_select_user = "SELECT money FROM table_name WHERE name='" + message.From.Username + "'";
+                    SQLiteCommand select_user_cmd = new SQLiteCommand(sql_select_user, m_dbConnection2);
+                    var result = select_user_cmd.ExecuteScalar();
+                    m_dbConnection2.Close();
+
+                    await botClient.SendTextMessageAsync(message.Chat.Id, $"Ваш баланс: {result} руб.", replyMarkup: keyboard);
+                    break;
+
+                
                 
             }
         }
