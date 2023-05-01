@@ -5,6 +5,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Data.SQLite;
+using Telegram.Bot.Types.Enums;
 
 namespace teleg
 {
@@ -35,21 +36,21 @@ namespace teleg
             {
                 new[]
                 {
-                    new KeyboardButton("Вернуться в главное меню")
+                    new KeyboardButton("Вернуться в меню 🔙")
                 }
             });
             var keyboard1 = new ReplyKeyboardMarkup(new[]
             {
                 new[]
                 {
-                    new KeyboardButton("Игра1"),
-                    new KeyboardButton("Игра2"),
-                    new KeyboardButton("Правила для игры1"),
-                    new KeyboardButton("Правила для игры2")
+                    new KeyboardButton("Игра 1 🎲"),
+                    new KeyboardButton("Игра 2 🎰"),
+                    new KeyboardButton("Ознакомиться с правилами для игры 1 📖"),
+                    new KeyboardButton("Ознакомиться с правилами для игры 2 📖")
                 },
                 new[]
                 {
-                    new KeyboardButton("Посмотреть мой баланс")
+                    new KeyboardButton("Просмотреть баланс 💳")
                 }
             });
 
@@ -57,7 +58,7 @@ namespace teleg
             switch (message.Text)
             {
                 case "/start":
-                case "Вернуться в главное меню":
+                case "Вернуться в меню 🔙":
 
                     // Добавляем пользователя в таблицу с начальным значением "money = 1000"
                     SQLiteConnection m_dbConnection = new SQLiteConnection("Data Source=mydatabase.db;Version=3;");
@@ -67,18 +68,18 @@ namespace teleg
                     insert_user_cmd.ExecuteNonQuery();
                     m_dbConnection.Close();
 
-                    await botClient.SendTextMessageAsync(message.Chat.Id, "Добрый день,хотите проиграть свою машину ?", replyMarkup: keyboard1);
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "Добро пожаловать в мир азарта и развлечений! 🎲🎰🃏 Сегодня у нас уникальный шанс попытать удачу и выиграть крупный джекпот! 💰💵💸", replyMarkup: keyboard1);
                     break;
 
-                case "Правила для игры2":
+                case "Ознакомиться с правилами для игры 1 📖":
 
                     await botClient.SendTextMessageAsync(message.Chat.Id, "rule 1");
                     break;
-                case "Правила для игры1":
+                case "Ознакомиться с правилами для игры 2 📖":
 
                     await botClient.SendTextMessageAsync(message.Chat.Id, "rule 2");
                     break;
-                case "Посмотреть мой баланс":
+                case "Просмотреть баланс 💳":
                     // Получаем баланс пользователя из БД
                     SQLiteConnection m_dbConnection2 = new SQLiteConnection("Data Source=mydatabase.db;Version=3;");
                     m_dbConnection2.Open();
@@ -87,13 +88,13 @@ namespace teleg
                     var result = select_user_cmd.ExecuteScalar();
                     m_dbConnection2.Close();
 
-                    await botClient.SendTextMessageAsync(message.Chat.Id, $"Ваш баланс: {result} руб.", replyMarkup: keyboard);
+                    await botClient.SendTextMessageAsync(message.Chat.Id, $"Ваш баланс: {result} руб.", replyMarkup: keyboard1);
                     break;
 
-                case "Игра1":
+                case "Игра 1 🎲":
                     Ruletka(botClient,message);
                     break;
-                case "Игра2":
+                case "Игра 2 🎰":
                     Kazino(botClient, message);
                     break;
             }
@@ -105,50 +106,52 @@ namespace teleg
             return Task.CompletedTask;
         }
         private static async Task Ruletka(ITelegramBotClient botClient, Message message)
-        {
-            // Получаем баланс пользователя из БД
-            SQLiteConnection m_dbConnection = new SQLiteConnection("Data Source=mydatabase.db;Version=3;");
-            m_dbConnection.Open();
-            string sql_select_user = "SELECT money FROM table_name WHERE name='" + message.From.Username + "'";
-            SQLiteCommand select_user_cmd = new SQLiteCommand(sql_select_user, m_dbConnection);
-            var result = select_user_cmd.ExecuteScalar();
+{
+    // Получаем баланс пользователя из БД
+    SQLiteConnection m_dbConnection = new SQLiteConnection("Data Source=mydatabase.db;Version=3;");
+    m_dbConnection.Open();
+    string sql_select_user = "SELECT money FROM table_name WHERE name='" + message.From.Username + "'";
+    SQLiteCommand select_user_cmd = new SQLiteCommand(sql_select_user, m_dbConnection);
+    var result = select_user_cmd.ExecuteScalar();
 
-            // Если у пользователя недостаточно средств, отправляем сообщение о нехватке средств и завершаем функцию
-            if ((int)result < 100)
-            {
-                await botClient.SendTextMessageAsync(message.Chat.Id, "У вас недостаточно средств для игры.");
-                m_dbConnection.Close();
-                return;
-            }
+    // Если у пользователя недостаточно средств, отправляем сообщение о нехватке средств и завершаем функцию
+    if ((int)result < 100)
+    {
+        await botClient.SendTextMessageAsync(message.Chat.Id, "К сожалению, на вашем балансе недостаточно средств для участия в игре. 💸🙁");
+        m_dbConnection.Close();
+        return;
+    }
 
-            // Обновляем баланс пользователя в БД
-            int new_balance = (int)result - 100;
-            string sql_update_user = "UPDATE table_name SET money=" + new_balance + " WHERE name='" + message.From.Username + "'";
-            SQLiteCommand update_user_cmd = new SQLiteCommand(sql_update_user, m_dbConnection);
-            update_user_cmd.ExecuteNonQuery();
-            m_dbConnection.Close();
+    // Обновляем баланс пользователя в БД
+    int new_balance = (int)result - 100;
+    string sql_update_user = "UPDATE table_name SET money=" + new_balance + " WHERE name='" + message.From.Username + "'";
+    SQLiteCommand update_user_cmd = new SQLiteCommand(sql_update_user, m_dbConnection);
+    update_user_cmd.ExecuteNonQuery();
+    m_dbConnection.Close();
 
-            Random random = new Random();
-            int rand_num = random.Next(1, 7);
+    Random random = new Random();
+    int rand_num = random.Next(1, 7);
 
-            if (rand_num == 1)
-            {
-                await botClient.SendTextMessageAsync(message.Chat.Id, $"Выпало число {rand_num}. Поздравляем вы выиграли! Вам начислено 600 руб.");
-                new_balance += 600;
-            }
-            else
-            {
-                await botClient.SendTextMessageAsync(message.Chat.Id, $"Выпало число {rand_num}. К сожалению, вы проиграли.");
-            }
+    if (rand_num == 1)
+    {
+        await botClient.SendTextMessageAsync(message.Chat.Id, $"Выпало число {rand_num}. Поздравляем, вы выиграли! 🥳 Вам начислено 600 руб. 💰");
+        new_balance += 600;
+    }
+    else
+    {
+        await botClient.SendTextMessageAsync(message.Chat.Id, $"Выпало число {rand_num}. К сожалению, вы проиграли. 😔");
+    }
 
-            // Обновляем баланс пользователя в БД
-            m_dbConnection.Open();
-            sql_update_user = "UPDATE table_name SET money=" + new_balance + " WHERE name='" + message.From.Username + "'";
-            update_user_cmd = new SQLiteCommand(sql_update_user, m_dbConnection);
-            update_user_cmd.ExecuteNonQuery();
-            m_dbConnection.Close();
-            return;
-        }
+    // Обновляем баланс пользователя в БД
+    m_dbConnection.Open();
+    sql_update_user = "UPDATE table_name SET money=" + new_balance + " WHERE name='" + message.From.Username + "'";
+    update_user_cmd = new SQLiteCommand(sql_update_user, m_dbConnection);
+    update_user_cmd.ExecuteNonQuery();
+    m_dbConnection.Close();
+    return;
+}
+
+
         private static async Task Kazino(ITelegramBotClient botClient, Message message)
         {
             // Получаем баланс пользователя из БД
@@ -161,7 +164,7 @@ namespace teleg
             // Если у пользователя недостаточно средств, отправляем сообщение о нехватке средств и завершаем функцию
             if ((int)result < 100)
             {
-                await botClient.SendTextMessageAsync(message.Chat.Id, "У вас недостаточно средств для игры.");
+                await botClient.SendTextMessageAsync(message.Chat.Id, "К сожалению, на вашем балансе недостаточно средств для участия в игре. 💸🙁");
                 m_dbConnection.Close();
                 return;
             }
@@ -180,19 +183,19 @@ namespace teleg
             if (a == b && b == c)
             {
                 new_balance += 900;
-                await botClient.SendTextMessageAsync(message.Chat.Id, $"Вы выиграли!\n Числа {a}, {b}, {c}. Вам начислено 900  руб.\n Баланс: {new_balance} руб.");
-                
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Ура! Вы выиграли джекпот 🤑🎉\n Числа {a}, {b}, {c}. Вам начислено 900 руб.\n Баланс: {new_balance} руб. 💰");
             }
             else if (a == b || b == c || a == c)
             {
                 new_balance +=128;
                 int equalNumber = a == b ? a : (b == c ? b : c);
-                await botClient.SendTextMessageAsync(message.Chat.Id, $"Вы выиграли!\n Дважды выпало число { equalNumber}. Числа {a}, {b}, {c}.\n Вам начислено 28 руб. Баланс: {new_balance} руб.");
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Вы выиграли 🎊\n Дважды выпало число { equalNumber}. Числа {a}, {b}, {c}.\n Вам начислено 128 руб. Баланс: {new_balance} руб. 😁");
             }
             else
             {
-                await botClient.SendTextMessageAsync(message.Chat.Id, $"Вы проиграли.\n Числа {a}, {b}, {c}.\n Баланс: {new_balance} руб.");
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"К сожалению, Вы проиграли 🙁\n Числа {a}, {b}, {c}\n Но не расстраивайтесь, в следующий раз обязательно повезет! Баланс: {new_balance} руб. 💸");
             }
+
 
             // Обновляем баланс пользователя в БД
             sql_update_user = "UPDATE table_name SET money=" + new_balance + " WHERE name='" + message.From.Username + "'";
@@ -200,6 +203,7 @@ namespace teleg
             update_user_cmd.ExecuteNonQuery();
             m_dbConnection.Close();
         }
+        
         
 
         
