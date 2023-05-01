@@ -45,8 +45,10 @@ namespace teleg
                 {
                     new KeyboardButton("Игра 1 🎲"),
                     new KeyboardButton("Игра 2 🎰"),
+                    new KeyboardButton("Игра 3 🏃‍"),
                     new KeyboardButton("Ознакомиться с правилами для игры 1 📖"),
-                    new KeyboardButton("Ознакомиться с правилами для игры 2 📖")
+                    new KeyboardButton("Ознакомиться с правилами для игры 2 📖"),
+                    new KeyboardButton("Ознакомиться с правилами для игры 3 📖")
                 },
                 new[]
                 {
@@ -79,6 +81,10 @@ namespace teleg
 
                     await botClient.SendTextMessageAsync(message.Chat.Id, "rule 2");
                     break;
+                case "Ознакомиться с правилами для игры 3 📖":
+
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "rule 3");
+                    break;
                 case "Просмотреть баланс 💳":
                     // Получаем баланс пользователя из БД
                     SQLiteConnection m_dbConnection2 = new SQLiteConnection("Data Source=mydatabase.db;Version=3;");
@@ -97,7 +103,10 @@ namespace teleg
                 case "Игра 2 🎰":
                     Kazino(botClient, message);
                     break;
-            }
+                case "Игра 3 🏃‍":
+                    RunGame(botClient, message);
+                    break;
+            }   
         }
 
         private static Task Error(ITelegramBotClient arg1, Exception arg2, CancellationToken arg3)
@@ -106,50 +115,50 @@ namespace teleg
             return Task.CompletedTask;
         }
         private static async Task Ruletka(ITelegramBotClient botClient, Message message)
-{
-    // Получаем баланс пользователя из БД
-    SQLiteConnection m_dbConnection = new SQLiteConnection("Data Source=mydatabase.db;Version=3;");
-    m_dbConnection.Open();
-    string sql_select_user = "SELECT money FROM table_name WHERE name='" + message.From.Username + "'";
-    SQLiteCommand select_user_cmd = new SQLiteCommand(sql_select_user, m_dbConnection);
-    var result = select_user_cmd.ExecuteScalar();
+        {
+            // Получаем баланс пользователя из БД
+            SQLiteConnection m_dbConnection = new SQLiteConnection("Data Source=mydatabase.db;Version=3;");
+            m_dbConnection.Open();
+            string sql_select_user = "SELECT money FROM table_name WHERE name='" + message.From.Username + "'";
+            SQLiteCommand select_user_cmd = new SQLiteCommand(sql_select_user, m_dbConnection);
+            var result = select_user_cmd.ExecuteScalar();
 
-    // Если у пользователя недостаточно средств, отправляем сообщение о нехватке средств и завершаем функцию
-    if ((int)result < 100)
-    {
-        await botClient.SendTextMessageAsync(message.Chat.Id, "К сожалению, на вашем балансе недостаточно средств для участия в игре. 💸🙁");
-        m_dbConnection.Close();
-        return;
-    }
+            // Если у пользователя недостаточно средств, отправляем сообщение о нехватке средств и завершаем функцию
+            if ((int)result < 100)
+            {
+                await botClient.SendTextMessageAsync(message.Chat.Id, "К сожалению, на вашем балансе недостаточно средств для участия в игре. 💸🙁");
+                m_dbConnection.Close();
+                return;
+            }
 
-    // Обновляем баланс пользователя в БД
-    int new_balance = (int)result - 100;
-    string sql_update_user = "UPDATE table_name SET money=" + new_balance + " WHERE name='" + message.From.Username + "'";
-    SQLiteCommand update_user_cmd = new SQLiteCommand(sql_update_user, m_dbConnection);
-    update_user_cmd.ExecuteNonQuery();
-    m_dbConnection.Close();
+            // Обновляем баланс пользователя в БД
+            int new_balance = (int)result - 100;
+            string sql_update_user = "UPDATE table_name SET money=" + new_balance + " WHERE name='" + message.From.Username + "'";
+            SQLiteCommand update_user_cmd = new SQLiteCommand(sql_update_user, m_dbConnection);
+            update_user_cmd.ExecuteNonQuery();
+            m_dbConnection.Close();
 
-    Random random = new Random();
-    int rand_num = random.Next(1, 7);
+            Random random = new Random();
+            int rand_num = random.Next(1, 7);
 
-    if (rand_num == 1)
-    {
-        await botClient.SendTextMessageAsync(message.Chat.Id, $"Выпало число {rand_num}. Поздравляем, вы выиграли! 🥳 Вам начислено 600 руб. 💰");
-        new_balance += 600;
-    }
-    else
-    {
-        await botClient.SendTextMessageAsync(message.Chat.Id, $"Выпало число {rand_num}. К сожалению, вы проиграли. 😔");
-    }
+            if (rand_num == 1)
+            {
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Выпало число {rand_num}. Поздравляем, вы выиграли! 🥳 Вам начислено 600 руб. 💰");
+                new_balance += 600;
+            }
+            else
+            {
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Выпало число {rand_num}. К сожалению, вы проиграли. 😔");
+            }
 
-    // Обновляем баланс пользователя в БД
-    m_dbConnection.Open();
-    sql_update_user = "UPDATE table_name SET money=" + new_balance + " WHERE name='" + message.From.Username + "'";
-    update_user_cmd = new SQLiteCommand(sql_update_user, m_dbConnection);
-    update_user_cmd.ExecuteNonQuery();
-    m_dbConnection.Close();
-    return;
-}
+            // Обновляем баланс пользователя в БД
+            m_dbConnection.Open();
+            sql_update_user = "UPDATE table_name SET money=" + new_balance + " WHERE name='" + message.From.Username + "'";
+            update_user_cmd = new SQLiteCommand(sql_update_user, m_dbConnection);
+            update_user_cmd.ExecuteNonQuery();
+            m_dbConnection.Close();
+            return;
+        }
 
 
         private static async Task Kazino(ITelegramBotClient botClient, Message message)
@@ -203,9 +212,96 @@ namespace teleg
             update_user_cmd.ExecuteNonQuery();
             m_dbConnection.Close();
         }
-        
-        
 
-        
+        private static async Task RunGame(ITelegramBotClient botClient, Message message)
+        {
+            // Получаем баланс пользователя из БД
+            SQLiteConnection connection = new SQLiteConnection("Data Source=mydatabase.db;Version=3;");
+            connection.Open();
+            string sqlSelectUser = $"SELECT money FROM table_name WHERE name='{message.From.Username}'";
+            SQLiteCommand selectUserCmd = new SQLiteCommand(sqlSelectUser, connection);
+            int balance = Convert.ToInt32(selectUserCmd.ExecuteScalar());
+            if (balance < 100)
+            {
+                await botClient.SendTextMessageAsync(message.Chat.Id,
+                    "К сожалению, на вашем балансе недостаточно средств для участия в игре. 💸🙁");
+                connection.Close();
+                return;
+            }
+
+            // Позиция человека
+            int position = 0;
+            Random random = new Random();
+            // Дистанция, которую нужно пробежать
+            int distance = random.Next(1, 11);
+            // Отправляем сообщение с правилами игры и текущим балансом
+            await botClient.SendTextMessageAsync(message.Chat.Id,
+                $"Добро пожаловать в игру \"Бегущий человек\"! 🏃‍♂️ \nЦель игры - пробежать  и заработать как можно больше денег. \nВаш текущий баланс: {balance} руб 💰💰💰.");
+            balance -= 100;
+            // Флаг для проверки, закончена ли игра
+            bool gameOver = false;
+
+            // Игровой цикл
+            while (!gameOver)
+            {
+                // Человек делает шаг
+                position++;
+
+                // Если человек достиг дистанции, игра закончена
+                if (position == distance)
+                {
+                    await botClient.SendTextMessageAsync(message.Chat.Id,
+                        $"Поздравляем! Вы пробежали дистанцию в {position} метров  ");
+
+                    // Обновляем баланс пользователя в БД
+
+                    string sqlUpdateUser =
+                        $"UPDATE table_name SET money={balance} WHERE name='{message.From.Username}'";
+                    SQLiteCommand updateUserCmd = new SQLiteCommand(sqlUpdateUser, connection);
+                    updateUserCmd.ExecuteNonQuery();
+
+                    gameOver = true;
+                }
+                else
+                {
+                    // Генерируем случайное число, которое определяет, сколько денег получит пользователь за текущий шаг
+
+                    int money = random.Next(10, 50);
+
+                    // Обновляем баланс пользователя
+                    balance += money;
+
+                    // Отправляем сообщение с результатами текущего шага
+                    await botClient.SendTextMessageAsync(message.Chat.Id,
+                        $"Вы прошли {position} метров и заработали {money} руб. 💰\nВаш текущий баланс: {balance} руб.");
+
+                    // Обновляем баланс пользователя в БД
+                    string sqlUpdateUser =
+                        $"UPDATE table_name SET money={balance} WHERE name='{message.From.Username}'";
+                    SQLiteCommand updateUserCmd = new SQLiteCommand(sqlUpdateUser, connection);
+                    updateUserCmd.ExecuteNonQuery();
+
+                    // Если у пользователя закончился баланс, игра закончена
+                    if (balance <= 0)
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id,
+                            "К сожалению, у вас закончились деньги. Игра окончена. 💸");
+                        gameOver = true;
+                    }
+                    else
+                    {
+                        // Ждем 2 секунды перед следующим шагом
+                        await Task.Delay(2000);
+                    }
+                }
+            }
+
+            connection.Close();
+
+        }
+
+
+
+
     }
 }
