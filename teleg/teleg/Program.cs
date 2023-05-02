@@ -45,7 +45,11 @@ namespace teleg
                 {
                     new KeyboardButton("Игра 1 🎲"),
                     new KeyboardButton("Игра 2 🎰"),
-                    new KeyboardButton("Игра 3 🏃‍"),
+                    new KeyboardButton("Игра 3 🏃‍")
+                    
+                },
+                new []
+                {
                     new KeyboardButton("Ознакомиться с правилами для игры 1 📖"),
                     new KeyboardButton("Ознакомиться с правилами для игры 2 📖"),
                     new KeyboardButton("Ознакомиться с правилами для игры 3 📖")
