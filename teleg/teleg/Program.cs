@@ -74,7 +74,7 @@ namespace teleg
                     insert_user_cmd.ExecuteNonQuery();
                     m_dbConnection.Close();
 
-                    await botClient.SendTextMessageAsync(message.Chat.Id, "Добро пожаловать в мир азарта и развлечений! 🎲🎰🃏 Сегодня у нас уникальный шанс попытать удачу и выиграть крупный джекпот! 💰💵💸", replyMarkup: keyboard1);
+                    await botClient.SendTextMessageAsync(message.Chat.Id, $"Добро пожаловать в мир азарта и развлечений,{message.From.FirstName}! 🎲🎰🃏 Сегодня у нас уникальный шанс попытать удачу и выиграть крупный джекпот! 💰💵💸", replyMarkup: keyboard1);
                     break;
 
                 case "Ознакомиться с правилами для игры 1 📖":
@@ -195,14 +195,14 @@ namespace teleg
 
             if (a == b && b == c)
             {
-                new_balance += 900;
+                new_balance += 1000;
                 await botClient.SendTextMessageAsync(message.Chat.Id, $"Ура! Вы выиграли джекпот 🤑🎉\n Числа {a}, {b}, {c}. Вам начислено 900 руб.\n Баланс: {new_balance} руб. 💰");
             }
             else if (a == b || b == c || a == c)
             {
-                new_balance +=128;
+                new_balance += 128;
                 int equalNumber = a == b ? a : (b == c ? b : c);
-                await botClient.SendTextMessageAsync(message.Chat.Id, $"Вы выиграли 🎊\n Дважды выпало число { equalNumber}. Числа {a}, {b}, {c}.\n Вам начислено 128 руб. Баланс: {new_balance} руб. 😁");
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Вы выиграли 🎊\n Дважды выпало число { equalNumber}. Числа {a}, {b}, {c}.\n Вам начислено 28 руб. Баланс: {new_balance} руб. 😁");
             }
             else
             {
@@ -299,13 +299,7 @@ namespace teleg
                     }
                 }
             }
-
             connection.Close();
-
         }
-
-
-
-
     }
 }
